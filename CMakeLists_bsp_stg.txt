@@ -22,6 +22,7 @@ list(APPEND BSP_SOURCES
   ${BSP_DIR}/stg/include/bsp_isr_priorities.h
   ${BSP_DIR}/stg/include/bsp_isr_cec_can.h
   ${BSP_DIR}/stg/include/bsp_isr_hardfault.h
+  ${BSP_DIR}/stg/include/bsp_isr_i2c2.h
   ${BSP_DIR}/stg/include/bsp_isr_svc.h
   ${BSP_DIR}/stg/include/bsp_isr_systick.h
   ${BSP_DIR}/stg/include/bsp_isr_usart3_8.h
@@ -41,6 +42,7 @@ list(APPEND BSP_SOURCES
   ${BSP_DIR}/stg/src/bsp.c
   ${BSP_DIR}/stg/src/bsp_can.c
   ${BSP_DIR}/stg/src/bsp_clock.c
+  ${BSP_DIR}/stg/src/bsp_eeprom.c
   ${BSP_DIR}/stg/src/bsp_isr_cec_can.c
   ${BSP_DIR}/stg/src/bsp_isr_hardfault.c
   ${BSP_DIR}/stg/src/bsp_isr_svc.c

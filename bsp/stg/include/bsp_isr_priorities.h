@@ -38,6 +38,7 @@ along with STG-8nn-Scaffold.  If not, see <https://www.gnu.org/licenses/>.
 enum KernelAwareISRs {
   BSP_SYSTICK_PRIO = QF_AWARE_ISR_CMSIS_PRI,
   BSP_CAN_PRIO,
+  BSP_I2C2_PRIO,
   BSP_USART3_PRIO,
   BSP_SVC_PRIO,
   /* ... */

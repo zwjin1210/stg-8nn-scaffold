@@ -27,6 +27,7 @@ set(BSP_INCLUDE ${BSP_DIR}/common/include)
 
 set(BSP_SOURCES
   ${BSP_DIR}/common/include/bsp.h
+  ${BSP_DIR}/common/include/bsp_eeprom.h
   ${BSP_DIR}/common/include/bsp_qpc.h
   ${BSP_DIR}/common/include/canard_build_config.h
   ${BSP_DIR}/common/src/bsp_common.c

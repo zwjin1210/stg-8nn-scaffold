@@ -39,6 +39,7 @@
 
 #include "bsp_mx_i2c.h"
 #include "bsp_mx_gpio.h"
+#include "bsp_isr_priorities.h"
 
 /* I2C2 init function */
 void BSP_MX_I2C2_Init(void) {
@@ -65,13 +66,16 @@ void BSP_MX_I2C2_Init(void) {
   GPIO_InitStruct.Alternate = LL_GPIO_AF_5;
   LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
+  /* Disable the device */
+  LL_I2C_Disable(I2C2);
+
   /* Peripheral clock enable */
   LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_I2C2);
 
   /* I2C Initialization */
   LL_I2C_DisableOwnAddress2(I2C2);
-  LL_I2C_DisableGeneralCall(I2C2);
-  LL_I2C_EnableClockStretching(I2C2);
+  LL_I2C_DisableGeneralCall(I2C2);    /* When disabled the Address 0x00 is NACKed. */
+  LL_I2C_EnableClockStretching(I2C2); /* This allows slaves to hold SCL low. */
 
   I2C_InitStruct.PeripheralMode = LL_I2C_MODE_I2C;
   I2C_InitStruct.Timing = 0x00303D5B;
@@ -84,4 +88,7 @@ void BSP_MX_I2C2_Init(void) {
 
   LL_I2C_EnableAutoEndMode(I2C2);
   LL_I2C_SetOwnAddress2(I2C2, 0, LL_I2C_OWNADDRESS2_NOMASK);
+
+  NVIC_SetPriority(I2C2_IRQn, BSP_I2C2_PRIO);
+  /* The IRQ can be enabled by calling: NVIC_EnableIRQ(I2C2_IRQn) */
 }
