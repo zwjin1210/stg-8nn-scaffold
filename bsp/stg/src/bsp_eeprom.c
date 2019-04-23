@@ -101,16 +101,16 @@ static void BSP_EEPROM_SetupDmaTransmission(const uint32_t nBytes);
 static void BSP_EEPROM_SetupDmaReception(const uint32_t nBytes);
 
 /* -- Local function prototypes (Active object) -- */
-static void BSP_EEPROM_EepromManager_ctor(EepromManager* me);
+static void BSP_EEPROM_ao_ctor(EepromManager* me);
 
-static QState BSP_EEPROM_EepromManager_init(EepromManager* me, QEvt const * const e);
-static QState BSP_EEPROM_EepromManager_ready(EepromManager* me, QEvt const * const e);
+static QState BSP_EEPROM_ao_init(EepromManager* me, QEvt const * const e);
+static QState BSP_EEPROM_ao_ready(EepromManager* me, QEvt const * const e);
 
-static QState BSP_EEPROM_EepromManager_read(EepromManager* me, QEvt const * const e);
-static QState BSP_EEPROM_EepromManager_receiving(EepromManager* me, QEvt const * const e);
+static QState BSP_EEPROM_ao_read(EepromManager* me, QEvt const * const e);
+static QState BSP_EEPROM_ao_receiving(EepromManager* me, QEvt const * const e);
 
-static QState BSP_EEPROM_EepromManager_write(EepromManager* me, QEvt const * const e);
-static QState BSP_EEPROM_EepromManager_transmitting(EepromManager* me, QEvt const * const e);
+static QState BSP_EEPROM_ao_write(EepromManager* me, QEvt const * const e);
+static QState BSP_EEPROM_ao_transmitting(EepromManager* me, QEvt const * const e);
 
 /* -- ISR implementation -- */
 void I2C2_IRQHandler(void)
@@ -121,9 +121,9 @@ void I2C2_IRQHandler(void)
 }
 
 /* -- Implementation of public functions -- */
-void BSP_EEPROM_EepromManager_initAO(void)
+void BSP_EEPROM_ao_initAO(void)
 {
-  BSP_EEPROM_EepromManager_ctor(&l_eepromManager);
+  BSP_EEPROM_ao_ctor(&l_eepromManager);
 }
 
 void BSP_EEPROM_startAO(const uint8_t priority)
@@ -295,13 +295,13 @@ static void BSP_EEPROM_SetupDeviceForRead_Step2(uint32_t nBytes)
   address as soon as it detects that the bus is free (BUSY = 0). */
 
 /* -- Active Object functions -- */
-static void BSP_EEPROM_EepromManager_ctor(EepromManager* me)
+static void BSP_EEPROM_ao_ctor(EepromManager* me)
 {
-  QActive_ctor(&me->super, Q_STATE_CAST(&BSP_EEPROM_EepromManager_init));
+  QActive_ctor(&me->super, Q_STATE_CAST(&BSP_EEPROM_ao_init));
   QTimeEvt_ctorX(&me->timeEvent, &me->super, EEPROM_TIMEOUT_SIG, 0U);
 }
 
-static QState BSP_EEPROM_EepromManager_init(EepromManager* me, QEvt const * const e)
+static QState BSP_EEPROM_ao_init(EepromManager* me, QEvt const * const e)
 {
   /* Important: you must've called BSP_MX_I2C2_Init/0 before, see BSP_init/0. */
 
@@ -315,10 +315,10 @@ static QState BSP_EEPROM_EepromManager_init(EepromManager* me, QEvt const * cons
   /* Enable the device */
   LL_I2C_Enable(EEPROM_I2C_DEVICE);
 
-  return Q_TRAN(&BSP_EEPROM_EepromManager_ready);
+  return Q_TRAN(&BSP_EEPROM_ao_ready);
 }
 
-static QState BSP_EEPROM_EepromManager_ready(EepromManager* me, QEvt const * const e)
+static QState BSP_EEPROM_ao_ready(EepromManager* me, QEvt const * const e)
 {
   QState status;
   switch(e->sig) {
@@ -332,10 +332,10 @@ static QState BSP_EEPROM_EepromManager_ready(EepromManager* me, QEvt const * con
       status = Q_HANDLED();
       break;
     case EEPROM_READ_PAGE_REQ_SIG:
-      status = Q_TRAN(&BSP_EEPROM_EepromManager_read);
+      status = Q_TRAN(&BSP_EEPROM_ao_read);
       break;
     case EEPROM_WRITE_PAGE_REQ_SIG:
-      status = Q_TRAN(&BSP_EEPROM_EepromManager_write);
+      status = Q_TRAN(&BSP_EEPROM_ao_write);
       break;
     default:
       status = Q_SUPER(&QHsm_top);
@@ -344,7 +344,7 @@ static QState BSP_EEPROM_EepromManager_ready(EepromManager* me, QEvt const * con
   return status;
 }
 
-static QState BSP_EEPROM_EepromManager_read(EepromManager* me, QEvt const * const e)
+static QState BSP_EEPROM_ao_read(EepromManager* me, QEvt const * const e)
 {
   QState status;
   switch(e->sig) {
@@ -364,7 +364,7 @@ static QState BSP_EEPROM_EepromManager_read(EepromManager* me, QEvt const * cons
   return status;
 }
 
-static QState BSP_EEPROM_EepromManager_write(EepromManager* me, QEvt const * const e)
+static QState BSP_EEPROM_ao_write(EepromManager* me, QEvt const * const e)
 {
   QState status;
   switch(e->sig) {
