@@ -25,27 +25,16 @@
 #include "stm32f0xx.h"
 #include <stdint.h>
 
-/* -- Linker generated Symbols -- */
-extern uint32_t __etext;
-extern uint32_t __data_start__;
-extern uint32_t __data_end__;
-extern uint32_t __copy_table_start__;
-extern uint32_t __copy_table_end__;
-extern uint32_t __zero_table_start__;
-extern uint32_t __zero_table_end__;
-extern uint32_t __bss_start__;
-extern uint32_t __bss_end__;
-extern uint32_t __StackTop;
-
 /* -- Exception / Interrupt Handler Function Prototype -- */
 typedef void (*pFunc)(void);
 
 /* -- External References -- */
-extern void _start(void) __attribute__((noreturn)); /* PreeMain (C library entry point) */
+extern uint32_t __INITIAL_SP;
+extern __NO_RETURN void __PROGRAM_START(void);
 
 /* -- Internal References -- */
-void Default_Handler(void) __attribute__((noreturn));
-void Reset_Handler(void) __attribute__((noreturn));
+void __NO_RETURN Default_Handler(void);
+void __NO_RETURN Reset_Handler(void);
 
 /* -- User Initial Stack & Heap -- */
 
@@ -101,24 +90,30 @@ void USART3_8_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
 void CEC_CAN_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
 
 /* -- Exception / Interrupt Vector table -- */
-extern const pFunc __Vectors[48];
-const pFunc __Vectors[48] __attribute__((used, section(".vectors"))) = {
-    (pFunc)(&__StackTop), /*     Initial Stack Pointer */
-    Reset_Handler,        /*     Reset Handler */
-    NMI_Handler,          /* -14 NMI Handler */
-    HardFault_Handler,    /* -13 Hard Fault Handler */
-    0,                    /*     Reserved */
-    0,                    /*     Reserved */
-    0,                    /*     Reserved */
-    0,                    /*     Reserved */
-    0,                    /*     Reserved */
-    0,                    /*     Reserved */
-    0,                    /*     Reserved */
-    SVC_Handler,          /*  -5 SVCall Handler */
-    0,                    /*     Reserved */
-    0,                    /*     Reserved */
-    PendSV_Handler,       /*  -2 PendSV Handler */
-    SysTick_Handler,      /*  -1 SysTick Handler */
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif
+
+extern const pFunc __VECTOR_TABLE[48];
+const pFunc __VECTOR_TABLE[48] __VECTOR_TABLE_ATTRIBUTE = {
+    (pFunc)(&__INITIAL_SP), /*     Initial Stack Pointer */
+    Reset_Handler,          /*     Reset Handler */
+    NMI_Handler,            /* -14 NMI Handler */
+    HardFault_Handler,      /* -13 Hard Fault Handler */
+    0,                      /*     Reserved */
+    0,                      /*     Reserved */
+    0,                      /*     Reserved */
+    0,                      /*     Reserved */
+    0,                      /*     Reserved */
+    0,                      /*     Reserved */
+    0,                      /*     Reserved */
+    SVC_Handler,            /*  -5 SVCall Handler */
+    0,                      /*     Reserved */
+    0,                      /*     Reserved */
+    PendSV_Handler,         /*  -2 PendSV Handler */
+    SysTick_Handler,        /*  -1 SysTick Handler */
 
     /* Interrupts */
     WWDG_IRQHandler,                  /*   0 Window WatchDog */
@@ -154,43 +149,14 @@ const pFunc __Vectors[48] __attribute__((used, section(".vectors"))) = {
     CEC_CAN_IRQHandler                /*  30 CEC and CAN */
 };
 
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
+
 /* -- Reset Handler called on controller reset -- */
 void Reset_Handler(void) {
-  uint32_t *pSrc, *pDest;
-  uint32_t *pTable __attribute__((unused));
-
-  SystemInit(); /* CMSIS System Initialization */
-
-  /* Copy data from read only memory to RAM.
-   * The ranges of copy from/to are specified by following symbols:
-   *   __etext, LMA of start of the section to copy from. Usually end of text
-   *   __data_start__, VMA of start of the section to copy to
-   *   __data_end__, VMA of end of the section to copy to
-   *
-   * All addresses must be aligned to 4 bytes boundary.
-   */
-  pSrc = &__etext;
-  pDest = &__data_start__;
-
-  for (; pDest < &__data_end__;) {
-    *pDest++ = *pSrc++;
-  }
-
-  /* Clear the BSS section.
-   *
-   * The BSS section is specified by following symbols
-   *   __bss_start__: start of the BSS section.
-   *   __bss_end__: end of the BSS section.
-   *
-   * Both addresses must be aligned to 4 bytes boundary.
-   */
-  pDest = &__bss_start__;
-
-  for (; pDest < &__bss_end__;) {
-    *pDest++ = 0UL;
-  }
-
-  _start(); /* Enter PreeMain (C library entry point) */
+  SystemInit();      /* CMSIS System Initialization */
+  __PROGRAM_START(); /* Enter PreeMain (C library entry point) */
 }
 
 /* -- Default Handler for Exceptions / Interrupts -- */
